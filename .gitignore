@@ -1,40 +1,21 @@
-# Environment variables and secrets
-.env
-.env.local
+cat > .gitignore <<'EOF'
+# ── Documentation we keep locally ─────────────────────────────────
+*.md
+*.docx
+*.pdf
+*.pptx
+*.ppt
+*.odt
+*.tex
 
-# Python cache and bytecode
+# ── Other files we usually don’t want in the repo ───────────────────
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-
-# Virtual environments
-.venv/
-venv/
-ENV/
-env/
-
-# Databases
-*.sqlite3
-db.sqlite3
-
-# Uploaded Evidence and Media Vault (Private evidence files)
-media/
-evidence_vault/
-
-# Static root collection
-staticfiles/
-
-# Testing and coverage artifacts
-.coverage
-htmlcov/
-.pytest_cache/
-
-# IDE and Editor configurations
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3          # local SQLite DB (optional)
+.env
+.env.*
 .DS_Store
 Thumbs.db
+EOF
