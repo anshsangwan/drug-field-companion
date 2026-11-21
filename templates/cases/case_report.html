@@ -1,0 +1,330 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Report: {{ case.case_reference }} | FieldTest Companion</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Custom Forensic Styles -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .report-sheet {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: #fff;
+            padding: 3rem;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-radius: 8px;
+        }
+        .report-header-border {
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .report-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.4rem;
+            margin-top: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .disclaimer-report-callout {
+            background-color: #fffbeb;
+            border: 2px solid #d97706;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1.5rem 0;
+            color: #78350f;
+            font-size: 0.85rem;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .report-sheet {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Print Control Bar -->
+    <div class="no-print bg-dark text-white py-2 px-4 d-flex justify-content-between align-items-center">
+        <div class="small">
+            <i class="bi bi-shield-check text-primary me-1"></i> FieldTest Companion &bull; Official Dossier Report: <strong>{{ case.case_reference }}</strong>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-sm btn-light fw-bold">
+                <i class="bi bi-printer me-1"></i> Print / Save as PDF
+            </button>
+            <a href="{% url 'case_detail' pk=case.pk %}" class="btn btn-sm btn-outline-light">
+                <i class="bi bi-arrow-left"></i> Back to Dossier
+            </a>
+        </div>
+    </div>
+
+    <!-- Official Report Document -->
+    <div class="report-sheet">
+        <!-- Header -->
+        <div class="report-header-border d-flex justify-content-between align-items-start">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-dark font-monospace fs-6">{{ case.case_reference }}</span>
+                    <span class="badge bg-secondary text-uppercase">{{ case.status }}</span>
+                </div>
+                <h1 class="h3 fw-bold mb-0">FIELD PRESUMPTIVE DRUG TESTING REPORT</h1>
+                <div class="text-muted small">Digital Companion for Drug Field Testing (DCDFT) Official Case Summary</div>
+            </div>
+            <div class="text-end small text-muted">
+                <div>Report Date: <strong>{{ report_generated_at|date:"Y-m-d H:i" }} UTC</strong></div>
+                <div>System ID: <span class="font-monospace">DCDFT-{{ case.id }}-REP</span></div>
+            </div>
+        </div>
+
+        <!-- Mandatory Forensic Scope & Presumptive Disclaimer -->
+        <div class="disclaimer-report-callout">
+            <div class="fw-bold mb-1">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> MANDATORY STATUTORY & PROCEDURAL DISCLAIMER:
+            </div>
+            {{ presumptive_disclaimer }}
+        </div>
+
+        <!-- Section 1: Incident & Case Information -->
+        <div class="report-section-title">1. Incident & Operational Context</div>
+        <div class="row g-3 small mb-3">
+            <div class="col-md-8">
+                <div class="text-muted">Case Title:</div>
+                <div class="fw-bold fs-6">{{ case.title }}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted">Incident Date & Time:</div>
+                <div class="fw-bold">{{ case.incident_datetime|date:"Y-m-d H:i" }}</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted">Operational Location:</div>
+                <div class="fw-bold">{{ case.general_location }}</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted">Lead Officer:</div>
+                <div class="fw-bold">{{ case.created_by.get_full_name|default:case.created_by.username }} (ID #{{ case.created_by.id }})</div>
+            </div>
+            <div class="col-12 mt-2">
+                <div class="text-muted">Incident Summary & Background Narrative:</div>
+                <div class="p-2 bg-light border rounded mt-1" style="white-space: pre-wrap;">{{ case.description }}</div>
+            </div>
+        </div>
+
+        <!-- Section 2: Physical Samples Registered -->
+        <div class="report-section-title">2. Physical Specimen Inventory ({{ samples|length }} Item{{ samples|length|pluralize }})</div>
+        <table class="table table-sm table-bordered small mb-4">
+            <thead class="table-light">
+                <tr>
+                    <th>Sample Code</th>
+                    <th>Collection Timestamp</th>
+                    <th>Description</th>
+                    <th>Packaging / Seal Reference</th>
+                    <th>Condition</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sample in samples %}
+                <tr>
+                    <td class="font-monospace fw-bold">{{ sample.sample_code }}</td>
+                    <td>{{ sample.collected_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ sample.description }}</td>
+                    <td>{{ sample.packaging_reference }} / <span class="font-monospace fw-bold">{{ sample.seal_reference }}</span></td>
+                    <td>{{ sample.initial_condition }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-2">No physical specimens registered.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Section 3: Presumptive Field-Testing Events -->
+        <div class="report-section-title">3. Documented Presumptive Field Test Events</div>
+        <table class="table table-sm table-bordered small mb-4">
+            <thead class="table-light">
+                <tr>
+                    <th>Specimen</th>
+                    <th>Test Kit & Lot #</th>
+                    <th>Performed At & Operator</th>
+                    <th>Result Category</th>
+                    <th>Sensory Observations / Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sample in samples %}
+                    {% for test in sample.test_events.all %}
+                    <tr>
+                        <td class="font-monospace fw-bold">{{ sample.sample_code }}</td>
+                        <td>
+                            <strong>{{ test.kit.name }}</strong> (Lot: {{ test.kit_lot_number }})
+                            <div class="text-muted" style="font-size: 0.75rem;">Exp: {{ test.kit_expiry_date|date:"Y-m-d" }}</div>
+                        </td>
+                        <td>
+                            {{ test.performed_at|date:"Y-m-d H:i" }}<br>
+                            <span class="text-muted">{{ test.performed_by.get_full_name|default:test.performed_by.username }}</span>
+                        </td>
+                        <td>
+                            <strong class="{% if test.result_category == 'Presumptive positive' %}text-danger{% elif test.result_category == 'Presumptive negative' %}text-success{% else %}text-warning{% endif %}">
+                                {{ test.result_category }}
+                            </strong>
+                        </td>
+                        <td>
+                            <div>{{ test.observation_notes }}</div>
+                            {% if test.limitations_note %}
+                            <div class="text-muted fst-italic mt-1" style="font-size: 0.75rem;">Limits: {{ test.limitations_note }}</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td class="font-monospace fw-bold">{{ sample.sample_code }}</td>
+                        <td colspan="4" class="text-muted fst-italic">No presumptive field test events documented for this specimen.</td>
+                    </tr>
+                    {% endfor %}
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-2">No tests recorded.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Section 4: Chain of Custody Timeline -->
+        <div class="report-section-title">4. Complete Chain of Custody Ledger</div>
+        <table class="table table-sm table-bordered small mb-4">
+            <thead class="table-light">
+                <tr>
+                    <th>Specimen</th>
+                    <th>Event Type</th>
+                    <th>Custody Timestamp</th>
+                    <th>From Party &rarr; To Party</th>
+                    <th>Location / Storage Ref</th>
+                    <th>Seal Verification</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sample in samples %}
+                    {% for event in sample.custody_events.all %}
+                    <tr {% if event.is_out_of_sequence %}class="table-warning"{% endif %}>
+                        <td class="font-monospace fw-bold">{{ sample.sample_code }}</td>
+                        <td>
+                            {{ event.event_type }}
+                            {% if event.is_out_of_sequence %}
+                            <span class="badge bg-danger text-white">Out of Seq</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ event.event_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ event.from_person }} &rarr; {{ event.to_person }}</td>
+                        <td>{{ event.location_reference }}</td>
+                        <td class="font-monospace">{{ event.seal_reference|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td class="font-monospace fw-bold">{{ sample.sample_code }}</td>
+                        <td colspan="5" class="text-muted fst-italic">No custody records logged.</td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Section 5: Evidence Attachments Manifest -->
+        <div class="report-section-title">5. Evidentiary Attachments Manifest</div>
+        <table class="table table-sm table-bordered small mb-4">
+            <thead class="table-light">
+                <tr>
+                    <th>File Name</th>
+                    <th>Associated Specimen</th>
+                    <th>File Size</th>
+                    <th>Caption / Descriptive Note</th>
+                    <th>Uploaded Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in evidence_files %}
+                <tr>
+                    <td class="font-monospace">{{ file.original_filename }}</td>
+                    <td>{{ file.sample.sample_code|default:"General Case" }}</td>
+                    <td>{{ file.file_size_display }}</td>
+                    <td>{{ file.caption }}</td>
+                    <td>{{ file.uploaded_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-2">No attachments registered in evidence vault.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Section 6: Supervisory Reviews & Verification Sign-Off -->
+        <div class="report-section-title">6. Supervisory Review & Endorsement</div>
+        {% for rev in review_records %}
+        <div class="p-3 border rounded bg-light small mb-3">
+            <div class="d-flex justify-content-between mb-2">
+                <div>
+                    <strong>Supervisory Action:</strong>
+                    <span class="badge {% if rev.decision == 'Approved' %}bg-success{% else %}bg-danger{% endif %} ms-1">
+                        {{ rev.decision }}
+                    </span>
+                </div>
+                <div class="text-muted">
+                    Reviewed On: <strong>{{ rev.reviewed_at|date:"Y-m-d H:i" }} UTC</strong>
+                </div>
+            </div>
+            <div class="mb-2">
+                Reviewing Supervisor: <strong>{{ rev.reviewer.get_full_name|default:rev.reviewer.username }}</strong>
+            </div>
+            <div>
+                <strong>Mandatory Review Comments:</strong>
+                <div class="mt-1 p-2 bg-white border rounded">{{ rev.comment }}</div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-light border small text-muted">
+            <i class="bi bi-clock-history me-1"></i> No formal supervisory review records have been logged for this case.
+        </div>
+        {% endfor %}
+
+        <!-- Sign-Off Footer -->
+        <div class="mt-5 pt-4 border-top">
+            <div class="row text-center small">
+                <div class="col-6">
+                    <div class="border-bottom pb-4 mb-2"></div>
+                    <div class="fw-bold">{{ case.created_by.get_full_name|default:case.created_by.username }}</div>
+                    <div class="text-muted">Reporting Field Officer (Signature / Badge)</div>
+                </div>
+                <div class="col-6">
+                    <div class="border-bottom pb-4 mb-2"></div>
+                    <div class="fw-bold">
+                        {% with rev=review_records.first %}
+                            {{ rev.reviewer.get_full_name|default:rev.reviewer.username|default:"Pending Supervisory Sign-off" }}
+                        {% endwith %}
+                    </div>
+                    <div class="text-muted">Reviewing Supervisor (Signature / Badge)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

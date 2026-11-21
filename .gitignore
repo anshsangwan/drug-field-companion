@@ -1,0 +1,40 @@
+# Environment variables and secrets
+.env
+.env.local
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Databases
+*.sqlite3
+db.sqlite3
+
+# Uploaded Evidence and Media Vault (Private evidence files)
+media/
+evidence_vault/
+
+# Static root collection
+staticfiles/
+
+# Testing and coverage artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE and Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

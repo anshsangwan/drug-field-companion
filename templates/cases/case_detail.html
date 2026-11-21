@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ case.case_reference }} - {{ case.title }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+<li class="breadcrumb-item active font-monospace" aria-current="page">{{ case.case_reference }}</li>
+{% endblock %}
+
+{% block content %}
+<!-- Case Header Bar -->
+<div class="card-forensic mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="font-monospace fw-bold fs-4 text-primary">{{ case.case_reference }}</span>
+                    {% if case.status == 'Draft' %}
+                        <span class="badge-status badge-draft"><i class="bi bi-pencil"></i> Draft</span>
+                    {% elif case.status == 'Submitted' %}
+                        <span class="badge-status badge-submitted"><i class="bi bi-clock"></i> Submitted</span>
+                    {% elif case.status == 'Changes requested' %}
+                        <span class="badge-status badge-changes-requested"><i class="bi bi-arrow-repeat"></i> Changes Requested</span>
+                    {% elif case.status == 'Approved' %}
+                        <span class="badge-status badge-approved"><i class="bi bi-check2-circle"></i> Approved</span>
+                    {% else %}
+                        <span class="badge-status badge-archived">{{ case.status }}</span>
+                    {% endif %}
+                </div>
+                <h1 class="h3 fw-bold mb-2">{{ case.title }}</h1>
+                <div class="d-flex flex-wrap gap-3 text-muted small">
+                    <div><i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ case.general_location }}</div>
+                    <div><i class="bi bi-calendar-event me-1 text-primary"></i> Incident: {{ case.incident_datetime|date:"Y-m-d H:i" }}</div>
+                    <div><i class="bi bi-person-badge me-1"></i> Lead: {{ case.created_by.get_full_name|default:case.created_by.username }}</div>
+                    {% if case.assigned_to %}
+                    <div><i class="bi bi-person-check me-1"></i> Assigned: {{ case.assigned_to.get_full_name|default:case.assigned_to.username }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Workflow Action Buttons -->
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'case_report' pk=case.pk %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1" target="_blank">
+                    <i class="bi bi-printer"></i> Case Report
+                </a>
+
+                {% if can_edit %}
+                <a href="{% url 'case_edit' pk=case.pk %}" class="btn btn-outline-primary d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-pencil"></i> Edit Details
+                </a>
+                <a href="{% url 'sample_create' case_id=case.pk %}" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-plus-circle"></i> Register Sample
+                </a>
+                <a href="{% url 'evidence_upload' case_id=case.pk %}" class="btn btn-outline-dark d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-paperclip"></i> Upload Evidence
+                </a>
+                {% endif %}
+
+                {% if can_submit %}
+                <form method="post" action="{% url 'case_submit' pk=case.pk %}" class="d-inline" onsubmit="return confirm('Confirm submission of case documentation for supervisory review? Editing will be locked.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success d-inline-flex align-items-center gap-1">
+                        <i class="bi bi-send-check"></i> Submit for Review
+                    </button>
+                </form>
+                {% endif %}
+
+                {% if is_supervisor or is_admin_user %}
+                <a href="{% url 'review_create' case_id=case.pk %}" class="btn btn-warning text-dark d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-clipboard-check"></i> Supervisor Action
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if case.status == 'Changes requested' %}
+        <div class="alert alert-danger mt-3 mb-0 d-flex align-items-center gap-2 small">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            <div>
+                <strong>Supervisory Revisions Required:</strong>
+                Please inspect supervisor review notes below, update required documentation, and resubmit the case.
+            </div>
+        </div>
+        {% elif case.status == 'Approved' %}
+        <div class="alert alert-success mt-3 mb-0 d-flex align-items-center gap-2 small">
+            <i class="bi bi-check-circle-fill fs-5"></i>
+            <div>
+                <strong>Formally Verified:</strong> This case dossier has been reviewed and endorsed by supervisory personnel.
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Case Narrative & Description -->
+<div class="card-forensic mb-4">
+    <div class="card-header">
+        <span><i class="bi bi-card-text text-primary me-2"></i> Incident Narrative & Background</span>
+        <span class="small text-muted">Created {{ case.created_at|date:"Y-m-d H:i" }}</span>
+    </div>
+    <div class="card-body">
+        <p class="mb-0 text-secondary" style="white-space: pre-wrap;">{{ case.description }}</p>
+    </div>
+</div>
+
+<!-- Registered Samples Section -->
+<div class="card-forensic mb-4">
+    <div class="card-header">
+        <span>
+            <i class="bi bi-box-seam text-primary me-2"></i> Registered Samples & Field Tests
+            <span class="badge bg-light text-dark border ms-1">{{ samples|length }}</span>
+        </span>
+        {% if can_edit %}
+        <a href="{% url 'sample_create' case_id=case.pk %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Register New Sample
+        </a>
+        {% endif %}
+    </div>
+    <div class="table-responsive">
+        <table class="table table-forensic mb-0">
+            <thead>
+                <tr>
+                    <th>Sample Code</th>
+                    <th>Collection Timestamp</th>
+                    <th>Physical Description</th>
+                    <th>Packaging & Seal</th>
+                    <th>Presumptive Results</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sample in samples %}
+                <tr>
+                    <td>
+                        <a href="{% url 'sample_detail' pk=sample.pk %}" class="font-monospace fw-bold text-decoration-none">
+                            {{ sample.sample_code }}
+                        </a>
+                    </td>
+                    <td class="text-muted small">
+                        {{ sample.collected_at|date:"Y-m-d H:i" }}
+                    </td>
+                    <td>
+                        <div class="text-truncate" style="max-width: 260px;">{{ sample.description }}</div>
+                        <div class="small text-muted">Condition: {{ sample.initial_condition }}</div>
+                    </td>
+                    <td class="small">
+                        <div>{{ sample.packaging_reference }}</div>
+                        <span class="badge bg-light text-secondary border font-monospace">{{ sample.seal_reference }}</span>
+                    </td>
+                    <td>
+                        {% for test in sample.test_events.all %}
+                            {% if test.result_category == 'Presumptive positive' %}
+                                <span class="badge-result badge-result-positive mb-1">{{ test.kit.name }}: Positive</span>
+                            {% elif test.result_category == 'Presumptive negative' %}
+                                <span class="badge-result badge-result-negative mb-1">{{ test.kit.name }}: Negative</span>
+                            {% elif test.result_category == 'Inconclusive' %}
+                                <span class="badge-result badge-result-inconclusive mb-1">{{ test.kit.name }}: Inconclusive</span>
+                            {% else %}
+                                <span class="badge-result badge-result-invalid mb-1">{{ test.kit.name }}: {{ test.result_category }}</span>
+                            {% endif %}
+                            <br>
+                        {% empty %}
+                            <span class="text-muted small">No test events recorded</span>
+                        {% endfor %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <a href="{% url 'sample_detail' pk=sample.pk %}" class="btn btn-sm btn-outline-primary" title="View Specimen Ledger">
+                                Specimen Ledger
+                            </a>
+                            {% if can_edit %}
+                            <a href="{% url 'test_event_create' sample_id=sample.pk %}" class="btn btn-sm btn-outline-success" title="Record Field Test">
+                                + Test
+                            </a>
+                            <a href="{% url 'custody_event_create' sample_id=sample.pk %}" class="btn btn-sm btn-outline-info text-dark" title="Log Custody Event">
+                                + Custody
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        No physical samples registered for this case yet.
+                        {% if can_edit %}
+                        <div class="mt-2">
+                            <a href="{% url 'sample_create' case_id=case.pk %}" class="btn btn-sm btn-primary">Register First Sample</a>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Evidence Vault Attachments -->
+    <div class="col-lg-6">
+        <div class="card-forensic h-100">
+            <div class="card-header">
+                <span>
+                    <i class="bi bi-paperclip text-primary me-2"></i> Evidence Vault
+                    <span class="badge bg-light text-dark border ms-1">{{ evidence_files|length }}</span>
+                </span>
+                {% if can_edit %}
+                <a href="{% url 'evidence_upload' case_id=case.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-upload me-1"></i> Attach File
+                </a>
+                {% endif %}
+            </div>
+            <div class="table-responsive">
+                <table class="table table-forensic mb-0">
+                    <thead>
+                        <tr>
+                            <th>File Name & Caption</th>
+                            <th>Associated Specimen</th>
+                            <th>Size</th>
+                            <th class="text-end">Secure Access</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in evidence_files %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold small text-truncate" style="max-width: 180px;">
+                                    {% if file.is_image %}<i class="bi bi-file-earmark-image text-primary me-1"></i>{% elif file.is_pdf %}<i class="bi bi-file-earmark-pdf text-danger me-1"></i>{% else %}<i class="bi bi-file-earmark text-secondary me-1"></i>{% endif %}
+                                    {{ file.original_filename }}
+                                </div>
+                                <div class="text-muted" style="font-size: 0.75rem;">{{ file.caption }}</div>
+                            </td>
+                            <td class="small">
+                                {% if file.sample %}
+                                <span class="font-monospace text-primary">{{ file.sample.sample_code }}</span>
+                                {% else %}
+                                <span class="text-muted">General Case</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ file.file_size_display }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'evidence_download' pk=file.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank" title="Authenticated Download">
+                                    <i class="bi bi-download"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted small">
+                                No evidence files uploaded.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supervisory Review History -->
+    <div class="col-lg-6">
+        <div class="card-forensic h-100">
+            <div class="card-header">
+                <span>
+                    <i class="bi bi-clipboard-check text-primary me-2"></i> Review & Endorsement Log
+                    <span class="badge bg-light text-dark border ms-1">{{ review_records|length }}</span>
+                </span>
+                {% if is_supervisor or is_admin_user %}
+                <a href="{% url 'review_create' case_id=case.pk %}" class="btn btn-sm btn-warning text-dark fw-semibold">
+                    Review Action
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for rev in review_records %}
+                    <li class="list-group-item p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">
+                                {% if rev.decision == 'Approved' %}
+                                <span class="badge-status badge-approved"><i class="bi bi-check2"></i> Approved</span>
+                                {% else %}
+                                <span class="badge-status badge-changes-requested"><i class="bi bi-arrow-repeat"></i> Changes Requested</span>
+                                {% endif %}
+                            </span>
+                            <span class="text-muted small">{{ rev.reviewed_at|date:"Y-m-d H:i" }}</span>
+                        </div>
+                        <div class="small text-muted mb-2">Reviewed by: {{ rev.reviewer.get_full_name|default:rev.reviewer.username }}</div>
+                        <div class="p-2 bg-light rounded small text-dark border">{{ rev.comment }}</div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center py-4 text-muted small">
+                        No supervisory reviews recorded yet.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Specimen {{ sample.sample_code }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_detail' pk=case.pk %}">{{ case.case_reference }}</a></li>
+<li class="breadcrumb-item active font-monospace" aria-current="page">{{ sample.sample_code }}</li>
+{% endblock %}
+
+{% block content %}
+<!-- Specimen Overview Card -->
+<div class="card-forensic mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="font-monospace fw-bold fs-4 text-primary">{{ sample.sample_code }}</span>
+                    <span class="badge bg-light text-dark border">Case: {{ case.case_reference }}</span>
+                    {% if case.is_editable %}
+                    <span class="badge bg-secondary-subtle text-secondary border">Editable Case</span>
+                    {% else %}
+                    <span class="badge bg-light text-muted border"><i class="bi bi-lock-fill"></i> Locked</span>
+                    {% endif %}
+                </div>
+                <h2 class="h5 fw-bold mb-2">{{ sample.description }}</h2>
+                <div class="d-flex flex-wrap gap-4 text-muted small mt-2">
+                    <div><i class="bi bi-clock me-1 text-primary"></i> Collected: {{ sample.collected_at|date:"Y-m-d H:i" }}</div>
+                    <div><i class="bi bi-shield-check me-1 text-success"></i> Seal: <span class="font-monospace text-dark fw-bold">{{ sample.seal_reference }}</span></div>
+                    <div><i class="bi bi-box me-1"></i> Packaging: {{ sample.packaging_reference }}</div>
+                    <div><i class="bi bi-info-circle me-1"></i> Condition: {{ sample.initial_condition }}</div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'case_detail' pk=case.pk %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-arrow-left"></i> Return to Case
+                </a>
+                {% if can_edit %}
+                <a href="{% url 'sample_edit' pk=sample.pk %}" class="btn btn-outline-primary d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-pencil"></i> Edit Sample
+                </a>
+                <a href="{% url 'test_event_create' sample_id=sample.pk %}" class="btn btn-success d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-flask"></i> Record Field Test
+                </a>
+                <a href="{% url 'custody_event_create' sample_id=sample.pk %}" class="btn btn-primary d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-link-45deg"></i> Log Custody Transfer
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Field Presumptive Testing Records -->
+<div class="card-forensic mb-4">
+    <div class="card-header">
+        <span>
+            <i class="bi bi-flask text-primary me-2"></i> Documented Field Presumptive Tests
+            <span class="badge bg-light text-dark border ms-1">{{ test_events|length }}</span>
+        </span>
+        {% if can_edit %}
+        <a href="{% url 'test_event_create' sample_id=sample.pk %}" class="btn btn-sm btn-success">
+            <i class="bi bi-plus-lg me-1"></i> Record Test Event
+        </a>
+        {% endif %}
+    </div>
+    <div class="table-responsive">
+        <table class="table table-forensic mb-0">
+            <thead>
+                <tr>
+                    <th>Test Kit & Manufacturer</th>
+                    <th>Lot # / Expiry</th>
+                    <th>Executed At & Operator</th>
+                    <th>Controlled Presumptive Result</th>
+                    <th>Sensory Observations</th>
+                    <th>Limitations / Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in test_events %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ test.kit.name }}</div>
+                        <div class="text-muted small">{{ test.kit.manufacturer }} &bull; {{ test.kit.catalogue_reference }}</div>
+                    </td>
+                    <td class="small">
+                        <div>Lot: <span class="font-monospace fw-bold">{{ test.kit_lot_number }}</span></div>
+                        <div class="text-muted">Exp: {{ test.kit_expiry_date|date:"Y-m-d" }}</div>
+                    </td>
+                    <td class="small">
+                        <div class="fw-semibold">{{ test.performed_at|date:"Y-m-d H:i" }}</div>
+                        <div class="text-muted">{{ test.performed_by.get_full_name|default:test.performed_by.username }}</div>
+                    </td>
+                    <td>
+                        {% if test.result_category == 'Presumptive positive' %}
+                            <span class="badge-result badge-result-positive"><i class="bi bi-exclamation-triangle-fill me-1"></i> Presumptive positive</span>
+                        {% elif test.result_category == 'Presumptive negative' %}
+                            <span class="badge-result badge-result-negative"><i class="bi bi-check-circle-fill me-1"></i> Presumptive negative</span>
+                        {% elif test.result_category == 'Inconclusive' %}
+                            <span class="badge-result badge-result-inconclusive"><i class="bi bi-question-circle-fill me-1"></i> Inconclusive</span>
+                        {% else %}
+                            <span class="badge-result badge-result-invalid">{{ test.result_category }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-secondary" style="max-width: 220px;">
+                        {{ test.observation_notes }}
+                    </td>
+                    <td class="small text-muted" style="max-width: 180px;">
+                        {{ test.limitations_note|default:"—" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        No field tests documented for this sample.
+                        {% if can_edit %}
+                        <div class="mt-2">
+                            <a href="{% url 'test_event_create' sample_id=sample.pk %}" class="btn btn-sm btn-success">Record Presumptive Test</a>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chain of Custody Timeline -->
+<div class="card-forensic mb-4">
+    <div class="card-header">
+        <span>
+            <i class="bi bi-shield-lock text-primary me-2"></i> Chronological Chain of Custody
+            <span class="badge bg-light text-dark border ms-1">{{ custody_events|length }} Events</span>
+        </span>
+        {% if can_edit %}
+        <a href="{% url 'custody_event_create' sample_id=sample.pk %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Log Custody Event
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="custody-timeline">
+            {% for event in custody_events %}
+            <div class="timeline-entry">
+                <div class="timeline-dot {% if event.is_out_of_sequence %}out-of-sequence{% endif %}"></div>
+                <div class="timeline-card">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-dark text-white">{{ event.event_type }}</span>
+                            {% if event.is_out_of_sequence %}
+                            <span class="badge bg-danger text-white">
+                                <i class="bi bi-exclamation-triangle"></i> Out of Sequence
+                            </span>
+                            {% endif %}
+                            <span class="fw-bold">{{ event.from_person }} &rarr; {{ event.to_person }}</span>
+                        </div>
+                        <div class="text-muted small">
+                            <i class="bi bi-calendar-event me-1"></i> <strong>{{ event.event_at|date:"Y-m-d H:i" }}</strong>
+                            <span class="text-secondary" style="font-size: 0.75rem;">(Logged {{ event.created_at|date:"Y-m-d H:i" }})</span>
+                        </div>
+                    </div>
+                    <div class="row g-2 small text-secondary">
+                        <div class="col-md-6">
+                            <i class="bi bi-geo-alt text-danger me-1"></i> Location: <strong>{{ event.location_reference }}</strong>
+                        </div>
+                        {% if event.seal_reference %}
+                        <div class="col-md-6">
+                            <i class="bi bi-shield-check text-success me-1"></i> Seal Verified: <span class="font-monospace fw-bold">{{ event.seal_reference }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if event.remarks %}
+                    <div class="mt-2 pt-2 border-top small text-muted">
+                        <em>Remarks:</em> {{ event.remarks }}
+                    </div>
+                    {% endif %}
+                    <div class="mt-1 text-end" style="font-size: 0.75rem; color: #94a3b8;">
+                        Logged by: {{ event.recorded_by.get_full_name|default:event.recorded_by.username }}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-4 text-muted">
+                No chain-of-custody transactions recorded.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Evidentiary Attachments for Specimen -->
+{% if evidence_files %}
+<div class="card-forensic mb-4">
+    <div class="card-header">
+        <span><i class="bi bi-paperclip text-primary me-2"></i> Evidentiary Attachments</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-forensic mb-0">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Caption</th>
+                    <th>Size</th>
+                    <th>Uploaded At</th>
+                    <th class="text-end">Access</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in evidence_files %}
+                <tr>
+                    <td class="fw-bold font-monospace small">
+                        {% if file.is_image %}<i class="bi bi-file-earmark-image text-primary me-1"></i>{% elif file.is_pdf %}<i class="bi bi-file-earmark-pdf text-danger me-1"></i>{% endif %}
+                        {{ file.original_filename }}
+                    </td>
+                    <td class="small text-secondary">{{ file.caption }}</td>
+                    <td class="small text-muted">{{ file.file_size_display }}</td>
+                    <td class="small text-muted">{{ file.uploaded_at|date:"Y-m-d H:i" }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'evidence_download' pk=file.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                            <i class="bi bi-download"></i> View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

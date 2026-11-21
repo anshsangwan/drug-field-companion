@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}System Audit Trail{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item active" aria-current="page">System Audit Trail</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Forensic Audit & Activity Trail</h1>
+        <p class="text-muted small mb-0">Immutable, chronological transaction log of system actions, record mutations, and role transitions.</p>
+    </div>
+</div>
+
+<!-- Filters Card -->
+<div class="card-forensic mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="q" class="form-label small fw-bold">Search Audit Ledger</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" id="q" value="{{ q }}" class="form-control" placeholder="Search by actor, object, summary...">
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <label for="action" class="form-label small fw-bold">Action Classification</label>
+                <select name="action" id="action" class="form-select">
+                    <option value="">All Actions</option>
+                    {% for code, label in action_choices %}
+                    <option value="{{ code }}" {% if selected_action == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                <a href="{% url 'audit_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Audit Table -->
+<div class="card-forensic">
+    <div class="table-responsive">
+        <table class="table table-forensic mb-0">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Target Entity</th>
+                    <th>Audit Summary & Change Trace</th>
+                    <th>Client IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in page_obj %}
+                <tr>
+                    <td class="small text-muted font-monospace" style="white-space: nowrap;">
+                        {{ event.timestamp|date:"Y-m-d H:i:s" }}
+                    </td>
+                    <td class="small fw-semibold">
+                        {% if event.actor %}
+                        <i class="bi bi-person me-1 text-primary"></i> {{ event.actor.username }}
+                        {% else %}
+                        <span class="text-muted">System/Anonymous</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-dark font-monospace" style="font-size: 0.7rem;">{{ event.action }}</span>
+                    </td>
+                    <td class="small">
+                        <span class="badge bg-light text-dark border font-monospace">{{ event.object_type }}#{{ event.object_id }}</span>
+                    </td>
+                    <td class="small text-secondary" style="max-width: 350px;">
+                        {{ event.summary }}
+                    </td>
+                    <td class="small text-muted font-monospace">
+                        {{ event.ip_address|default:"127.0.0.1" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        No audit events found matching query.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+        <span class="small text-muted">
+            Showing events {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+        </span>
+        <nav aria-label="Audit pagination">
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&action={{ selected_action }}">Previous</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&action={{ selected_action }}">Next</a></li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

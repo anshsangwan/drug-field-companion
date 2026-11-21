@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_detail' pk=case.pk %}">{{ case.case_reference }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-forensic">
+            <div class="card-header">
+                <span><i class="bi bi-box-seam text-primary me-2"></i> {{ title }}</span>
+                <span class="badge bg-secondary font-monospace">{{ case.case_reference }}</span>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.sample_code.id_for_label }}" class="form-label small fw-bold">Sample Code</label>
+                            {{ form.sample_code }}
+                            <div class="form-text small">{{ form.sample_code.help_text }}</div>
+                            {% if form.sample_code.errors %}<div class="text-danger small mt-1">{{ form.sample_code.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.collected_at.id_for_label }}" class="form-label small fw-bold">Collection Date & Time <span class="text-danger">*</span></label>
+                            {{ form.collected_at }}
+                            <div class="form-text small">{{ form.collected_at.help_text }}</div>
+                            {% if form.collected_at.errors %}<div class="text-danger small mt-1">{{ form.collected_at.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label small fw-bold">Physical Description of Specimen <span class="text-danger">*</span></label>
+                        {{ form.description }}
+                        <div class="form-text small">{{ form.description.help_text }}</div>
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.packaging_reference.id_for_label }}" class="form-label small fw-bold">Packaging Reference <span class="text-danger">*</span></label>
+                            {{ form.packaging_reference }}
+                            <div class="form-text small">{{ form.packaging_reference.help_text }}</div>
+                            {% if form.packaging_reference.errors %}<div class="text-danger small mt-1">{{ form.packaging_reference.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.seal_reference.id_for_label }}" class="form-label small fw-bold">Numbered Integrity Seal Reference <span class="text-danger">*</span></label>
+                            {{ form.seal_reference }}
+                            <div class="form-text small">{{ form.seal_reference.help_text }}</div>
+                            {% if form.seal_reference.errors %}<div class="text-danger small mt-1">{{ form.seal_reference.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.initial_condition.id_for_label }}" class="form-label small fw-bold">Initial Physical Condition <span class="text-danger">*</span></label>
+                        {{ form.initial_condition }}
+                        <div class="form-text small">{{ form.initial_condition.help_text }}</div>
+                        {% if form.initial_condition.errors %}<div class="text-danger small mt-1">{{ form.initial_condition.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% if sample %}{% url 'sample_detail' pk=sample.pk %}{% else %}{% url 'case_detail' pk=case.pk %}{% endif %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> Register Specimen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

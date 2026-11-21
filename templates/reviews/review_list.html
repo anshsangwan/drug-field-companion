@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Supervisory Review Queue{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item active" aria-current="page">Review Queue</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Supervisory Review Queue</h1>
+        <p class="text-muted small mb-0">Review submitted field documentation, request required corrections, or approve final dossiers.</p>
+    </div>
+</div>
+
+<!-- Pending Cases Queue -->
+<div class="card-forensic mb-4">
+    <div class="card-header bg-warning bg-opacity-10 border-warning">
+        <span class="text-dark"><i class="bi bi-clock-history text-warning me-2"></i> Cases Awaiting Supervisory Determination</span>
+        <span class="badge bg-warning text-dark">{{ pending_cases|length }} Pending</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-forensic mb-0">
+            <thead>
+                <tr>
+                    <th>Case Reference</th>
+                    <th>Title & Location</th>
+                    <th>Submitting Officer</th>
+                    <th>Submission Timestamp</th>
+                    <th>Samples</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in pending_cases %}
+                <tr>
+                    <td>
+                        <a href="{% url 'case_detail' pk=case.pk %}" class="font-monospace fw-bold text-decoration-none">
+                            {{ case.case_reference }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ case.title }}</div>
+                        <div class="text-muted small">{{ case.general_location }}</div>
+                    </td>
+                    <td class="small">{{ case.created_by.get_full_name|default:case.created_by.username }}</td>
+                    <td class="small text-muted">{{ case.updated_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark border">{{ case.samples.count }}</span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'review_create' case_id=case.pk %}" class="btn btn-sm btn-warning text-dark fw-bold">
+                            <i class="bi bi-pencil-square"></i> Review Documentation
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        <i class="bi bi-check2-circle text-success fs-4 d-block mb-1"></i>
+                        No cases are currently awaiting supervisory review.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Reviews Log -->
+<div class="card-forensic">
+    <div class="card-header">
+        <span><i class="bi bi-journal-check text-primary me-2"></i> Recent Supervisory Actions Log</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-forensic mb-0">
+            <thead>
+                <tr>
+                    <th>Case Reference</th>
+                    <th>Supervisor</th>
+                    <th>Determination</th>
+                    <th>Date & Time</th>
+                    <th>Review Comments</th>
+                    <th class="text-end">Dossier</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rev in recent_reviews %}
+                <tr>
+                    <td>
+                        <a href="{% url 'case_detail' pk=rev.case.pk %}" class="font-monospace fw-bold text-decoration-none">
+                            {{ rev.case.case_reference }}
+                        </a>
+                    </td>
+                    <td class="small">{{ rev.reviewer.get_full_name|default:rev.reviewer.username }}</td>
+                    <td>
+                        {% if rev.decision == 'Approved' %}
+                        <span class="badge-status badge-approved">Approved</span>
+                        {% else %}
+                        <span class="badge-status badge-changes-requested">Changes Requested</span>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ rev.reviewed_at|date:"Y-m-d H:i" }}</td>
+                    <td class="small text-secondary" style="max-width: 300px;">
+                        {{ rev.comment }}
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'case_detail' pk=rev.case.pk %}" class="btn btn-sm btn-outline-primary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                        No previous supervisory reviews found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

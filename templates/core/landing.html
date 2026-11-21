@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}FieldTest Companion - Forensic Field Testing Documentation{% endblock %}
+
+{% block content %}
+<div class="row align-items-center justify-content-center py-4">
+    <div class="col-lg-10">
+        <div class="card-forensic p-4 p-md-5 bg-white border-0 shadow-sm rounded-4">
+            <div class="row align-items-center gy-4">
+                <div class="col-lg-7">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-primary bg-opacity-10 text-primary rounded-pill small fw-semibold mb-3">
+                        <i class="bi bi-shield-check"></i> INT253 Forensic Documentation Platform
+                    </div>
+                    <h1 class="display-5 fw-bold text-navy mb-3">
+                        Digital Companion for Drug Field Testing
+                    </h1>
+                    <p class="lead text-muted mb-4">
+                        A structured, secure, and auditable digital workflow platform for field personnel to record presumptive test events, trace chain-of-custody, manage private evidentiary attachments, and process supervisory reviews.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-box-arrow-in-right"></i> Access Authorized Portal
+                        </a>
+                        <a href="#features" class="btn btn-outline-secondary btn-lg px-4">
+                            Platform Scope
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="bg-light p-4 rounded-3 border">
+                        <h5 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-person-badge text-primary me-1"></i> Authorized Roles
+                        </h5>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small">
+                            <li class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                                <div><strong>Field Officer:</strong> Case creation, sample logging, presumptive test & custody recording.</div>
+                            </li>
+                            <li class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                                <div><strong>Supervisor:</strong> Documentation review, correction requests, final approval & reports.</div>
+                            </li>
+                            <li class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                                <div><strong>Administrator:</strong> User credentialing, role governance, kit catalogue metadata.</div>
+                            </li>
+                            <li class="d-flex align-items-start gap-2">
+                                <i class="bi bi-check-circle-fill text-success mt-1"></i>
+                                <div><strong>Read-only User:</strong> Read access for compliance auditing and inspection.</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scope & Safety Section -->
+        <div class="row g-4 mt-2" id="features">
+            <div class="col-md-4">
+                <div class="card-forensic h-100 p-4">
+                    <div class="text-primary fs-3 mb-2"><i class="bi bi-shield-lock-fill"></i></div>
+                    <h5 class="fw-bold">Chain of Custody</h5>
+                    <p class="text-muted small mb-0">
+                        Append-only chronological tracking of sample transfers, seal integrity verifications, locker storage, and out-of-sequence flags.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-forensic h-100 p-4">
+                    <div class="text-primary fs-3 mb-2"><i class="bi bi-flask-fill"></i></div>
+                    <h5 class="fw-bold">Presumptive Screening</h5>
+                    <p class="text-muted small mb-0">
+                        Documented test kit lot, expiration checks, objective observations, and strict presumptive result categories without chemical recipes.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-forensic h-100 p-4">
+                    <div class="text-primary fs-3 mb-2"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+                    <h5 class="fw-bold">Verified Reports</h5>
+                    <p class="text-muted small mb-0">
+                        Print-ready official forensic summary reports containing full specimen timelines, supervisory endorsements, and persistent disclaimers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

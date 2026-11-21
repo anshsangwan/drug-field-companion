@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}Operational Dashboard{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Forensic Operations Dashboard</h1>
+        <p class="text-muted small mb-0">Overview of active field cases, specimen tracking, and supervisory verifications.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        {% if is_field_officer %}
+        <a href="{% url 'case_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-1">
+            <i class="bi bi-plus-circle"></i> Create New Case
+        </a>
+        {% endif %}
+        {% if is_supervisor or is_admin_user %}
+        <a href="{% url 'review_list' %}" class="btn btn-warning text-dark d-inline-flex align-items-center gap-1">
+            <i class="bi bi-clipboard-check"></i> Review Queue ({{ pending_reviews }})
+        </a>
+        {% endif %}
+        <a href="{% url 'case_list' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1">
+            <i class="bi bi-list-ul"></i> All Cases
+        </a>
+    </div>
+</div>
+
+<!-- Key Operational Metrics -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Total Cases</div>
+            <div class="metric-value">{{ total_cases }}</div>
+            <div class="metric-footer"><i class="bi bi-folder2 text-primary"></i> Cumulative registered dossiers</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Active / In-Flight</div>
+            <div class="metric-value text-primary">{{ active_cases }}</div>
+            <div class="metric-footer"><i class="bi bi-clock-history text-primary"></i> Draft / Submitted / In Review</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Total Samples</div>
+            <div class="metric-value">{{ total_samples }}</div>
+            <div class="metric-footer"><i class="bi bi-box-seam text-secondary"></i> Physical specimens secured</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="metric-card">
+            <div class="metric-label">Pending Reviews</div>
+            <div class="metric-value text-warning">{{ pending_reviews }}</div>
+            <div class="metric-footer"><i class="bi bi-shield-exclamation text-warning"></i> Awaiting supervisor signoff</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Cases Table -->
+    <div class="col-lg-8">
+        <div class="card-forensic">
+            <div class="card-header">
+                <span><i class="bi bi-journal-text me-2 text-primary"></i> Recent Case Dossiers</span>
+                <a href="{% url 'case_list' %}" class="btn btn-sm btn-link text-decoration-none">View All Cases &rarr;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-forensic mb-0">
+                    <thead>
+                        <tr>
+                            <th>Case Reference</th>
+                            <th>Title & Location</th>
+                            <th>Status</th>
+                            <th>Incident Date</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for case in recent_cases %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'case_detail' pk=case.pk %}" class="fw-bold text-decoration-none font-monospace">
+                                    {{ case.case_reference }}
+                                </a>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ case.title }}</div>
+                                <div class="text-muted small"><i class="bi bi-geo-alt"></i> {{ case.general_location }}</div>
+                            </td>
+                            <td>
+                                {% if case.status == 'Draft' %}
+                                    <span class="badge-status badge-draft"><i class="bi bi-pencil"></i> Draft</span>
+                                {% elif case.status == 'Submitted' %}
+                                    <span class="badge-status badge-submitted"><i class="bi bi-clock"></i> Submitted</span>
+                                {% elif case.status == 'Changes requested' %}
+                                    <span class="badge-status badge-changes-requested"><i class="bi bi-arrow-repeat"></i> Changes Req.</span>
+                                {% elif case.status == 'Approved' %}
+                                    <span class="badge-status badge-approved"><i class="bi bi-check2-circle"></i> Approved</span>
+                                {% else %}
+                                    <span class="badge-status badge-archived">{{ case.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">
+                                {{ case.incident_datetime|date:"Y-m-d H:i" }}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'case_detail' pk=case.pk %}" class="btn btn-sm btn-outline-primary">
+                                    View Dossier
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                No case records created yet.
+                                {% if is_field_officer %}
+                                <div class="mt-2">
+                                    <a href="{% url 'case_create' %}" class="btn btn-sm btn-primary">Create First Case</a>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if is_supervisor or is_admin_user %}
+        <!-- Pending Verification Queue -->
+        <div class="card-forensic">
+            <div class="card-header bg-warning bg-opacity-10 border-warning">
+                <span class="text-dark"><i class="bi bi-clipboard-check me-2 text-warning"></i> Cases Awaiting Supervisory Sign-off</span>
+                <span class="badge bg-warning text-dark">{{ pending_reviews }} Pending</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-forensic mb-0">
+                    <thead>
+                        <tr>
+                            <th>Case Reference</th>
+                            <th>Officer</th>
+                            <th>Submitted Date</th>
+                            <th class="text-end">Supervisory Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pending in pending_review_list %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'case_detail' pk=pending.pk %}" class="font-monospace fw-bold text-decoration-none">
+                                    {{ pending.case_reference }}
+                                </a>
+                                <div class="text-muted small">{{ pending.title }}</div>
+                            </td>
+                            <td>{{ pending.created_by.get_full_name|default:pending.created_by.username }}</td>
+                            <td class="text-muted small">{{ pending.updated_at|date:"Y-m-d H:i" }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'review_create' case_id=pending.pk %}" class="btn btn-sm btn-warning text-dark fw-semibold">
+                                    <i class="bi bi-pencil-square"></i> Review Now
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-3 text-muted">
+                                <i class="bi bi-check2-all text-success me-1"></i> No cases pending supervisory review.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Audit Activity & Role Status -->
+    <div class="col-lg-4">
+        <!-- Quick Action Shortcuts -->
+        <div class="card-forensic">
+            <div class="card-header">
+                <span><i class="bi bi-lightning-charge me-2 text-primary"></i> Operational Shortcuts</span>
+            </div>
+            <div class="card-body d-flex flex-column gap-2">
+                {% if is_field_officer %}
+                <a href="{% url 'case_create' %}" class="btn btn-outline-primary text-start d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-plus fs-5"></i>
+                    <div>
+                        <div class="fw-bold">New Field Case</div>
+                        <div class="small text-muted">Generate case reference & record scene</div>
+                    </div>
+                </a>
+                {% endif %}
+                <a href="{% url 'kit_list' %}" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+                    <i class="bi bi-box-seam fs-5"></i>
+                    <div>
+                        <div class="fw-bold">Test Kit Catalogue</div>
+                        <div class="small text-muted">Browse approved presumptive kits</div>
+                    </div>
+                </a>
+                {% if is_admin_user %}
+                <a href="{% url 'user_list' %}" class="btn btn-outline-dark text-start d-flex align-items-center gap-2">
+                    <i class="bi bi-person-gear fs-5"></i>
+                    <div>
+                        <div class="fw-bold">User Management</div>
+                        <div class="small text-muted">Assign roles & manage access permissions</div>
+                    </div>
+                </a>
+                {% endif %}
+                {% if is_admin_user or is_supervisor or is_readonly_user %}
+                <a href="{% url 'audit_list' %}" class="btn btn-outline-info text-start d-flex align-items-center gap-2 text-dark">
+                    <i class="bi bi-clock-history fs-5"></i>
+                    <div>
+                        <div class="fw-bold">System Audit Trail</div>
+                        <div class="small text-muted">View immutable event and state logs</div>
+                    </div>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Audit Activity Feed -->
+        <div class="card-forensic">
+            <div class="card-header">
+                <span><i class="bi bi-activity me-2 text-primary"></i> Recent Audit Log</span>
+                {% if is_admin_user or is_supervisor %}
+                <a href="{% url 'audit_list' %}" class="btn btn-sm btn-link text-decoration-none">Full Log &rarr;</a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush small">
+                    {% for act in recent_activities %}
+                    <li class="list-group-item py-2 px-3">
+                        <div class="d-flex justify-content-between text-muted" style="font-size: 0.75rem;">
+                            <span>{{ act.actor.username|default:"System" }} &bull; {{ act.action }}</span>
+                            <span>{{ act.timestamp|timesince }} ago</span>
+                        </div>
+                        <div class="text-dark text-truncate mt-1">{{ act.summary }}</div>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted py-3">No recent activities recorded.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_detail' pk=case.pk %}">{{ case.case_reference }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sample_detail' pk=sample.pk %}">{{ sample.sample_code }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Prominent Presumptive Result Notice -->
+        <div class="alert alert-warning border border-warning-subtle shadow-sm mb-4">
+            <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-exclamation-triangle-fill fs-4 text-warning flex-shrink-0"></i>
+                <div>
+                    <h5 class="alert-heading fw-bold mb-1">Presumptive Screening Documentation Notice</h5>
+                    <p class="mb-0 small">
+                        {{ presumptive_disclaimer }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-forensic">
+            <div class="card-header">
+                <span><i class="bi bi-flask text-success me-2"></i> {{ title }}</span>
+                <span class="badge bg-secondary font-monospace">{{ sample.sample_code }}</span>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.kit.id_for_label }}" class="form-label small fw-bold">Test Kit Catalogue Entry <span class="text-danger">*</span></label>
+                        {{ form.kit }}
+                        <div class="form-text small">Select from approved catalogue entries. Kits contain descriptive metadata only.</div>
+                        {% if form.kit.errors %}<div class="text-danger small mt-1">{{ form.kit.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.kit_lot_number.id_for_label }}" class="form-label small fw-bold">Kit Lot / Batch Number <span class="text-danger">*</span></label>
+                            {{ form.kit_lot_number }}
+                            <div class="form-text small">{{ form.kit_lot_number.help_text }}</div>
+                            {% if form.kit_lot_number.errors %}<div class="text-danger small mt-1">{{ form.kit_lot_number.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.kit_expiry_date.id_for_label }}" class="form-label small fw-bold">Kit Expiration Date <span class="text-danger">*</span></label>
+                            {{ form.kit_expiry_date }}
+                            <div class="form-text small">{{ form.kit_expiry_date.help_text }}</div>
+                            {% if form.kit_expiry_date.errors %}<div class="text-danger small mt-1">{{ form.kit_expiry_date.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.performed_at.id_for_label }}" class="form-label small fw-bold">Execution Date & Time <span class="text-danger">*</span></label>
+                            {{ form.performed_at }}
+                            <div class="form-text small">{{ form.performed_at.help_text }}</div>
+                            {% if form.performed_at.errors %}<div class="text-danger small mt-1">{{ form.performed_at.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.result_category.id_for_label }}" class="form-label small fw-bold">Presumptive Result Category <span class="text-danger">*</span></label>
+                            {{ form.result_category }}
+                            <div class="form-text small">{{ form.result_category.help_text }}</div>
+                            {% if form.result_category.errors %}<div class="text-danger small mt-1">{{ form.result_category.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.observation_notes.id_for_label }}" class="form-label small fw-bold">Sensory Observation Notes <span class="text-danger">*</span></label>
+                        {{ form.observation_notes }}
+                        <div class="form-text small">{{ form.observation_notes.help_text }}</div>
+                        {% if form.observation_notes.errors %}<div class="text-danger small mt-1">{{ form.observation_notes.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.limitations_note.id_for_label }}" class="form-label small fw-bold">Limitations & Environmental Conditions Note</label>
+                        {{ form.limitations_note }}
+                        <div class="form-text small">{{ form.limitations_note.help_text }}</div>
+                        {% if form.limitations_note.errors %}<div class="text-danger small mt-1">{{ form.limitations_note.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'sample_detail' pk=sample.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-save me-1"></i> Record Test Event
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

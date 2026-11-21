@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_detail' pk=case.pk %}">{{ case.case_reference }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sample_detail' pk=sample.pk %}">{{ sample.sample_code }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card-forensic">
+            <div class="card-header">
+                <span><i class="bi bi-shield-lock text-primary me-2"></i> {{ title }}</span>
+                <span class="badge bg-secondary font-monospace">{{ sample.sample_code }}</span>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info small mb-3">
+                    <i class="bi bi-info-circle-fill me-1"></i>
+                    <strong>Chain of Custody Integrity Notice:</strong>
+                    Custody events are append-only. Submitting an event with a timestamp earlier than existing records will be flagged as an out-of-sequence event for procedural auditing.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.event_type.id_for_label }}" class="form-label small fw-bold">Custody Event Type <span class="text-danger">*</span></label>
+                            {{ form.event_type }}
+                            {% if form.event_type.errors %}<div class="text-danger small mt-1">{{ form.event_type.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.event_at.id_for_label }}" class="form-label small fw-bold">Transfer / Event Timestamp <span class="text-danger">*</span></label>
+                            {{ form.event_at }}
+                            <div class="form-text small">{{ form.event_at.help_text }}</div>
+                            {% if form.event_at.errors %}<div class="text-danger small mt-1">{{ form.event_at.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.from_person.id_for_label }}" class="form-label small fw-bold">From Party / Releasing Custodian <span class="text-danger">*</span></label>
+                            {{ form.from_person }}
+                            <div class="form-text small">{{ form.from_person.help_text }}</div>
+                            {% if form.from_person.errors %}<div class="text-danger small mt-1">{{ form.from_person.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.to_person.id_for_label }}" class="form-label small fw-bold">To Party / Receiving Custodian <span class="text-danger">*</span></label>
+                            {{ form.to_person }}
+                            <div class="form-text small">{{ form.to_person.help_text }}</div>
+                            {% if form.to_person.errors %}<div class="text-danger small mt-1">{{ form.to_person.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.location_reference.id_for_label }}" class="form-label small fw-bold">Storage / Transfer Location <span class="text-danger">*</span></label>
+                            {{ form.location_reference }}
+                            <div class="form-text small">{{ form.location_reference.help_text }}</div>
+                            {% if form.location_reference.errors %}<div class="text-danger small mt-1">{{ form.location_reference.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.seal_reference.id_for_label }}" class="form-label small fw-bold">Verified Seal Reference</label>
+                            {{ form.seal_reference }}
+                            <div class="form-text small">{{ form.seal_reference.help_text }}</div>
+                            {% if form.seal_reference.errors %}<div class="text-danger small mt-1">{{ form.seal_reference.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.remarks.id_for_label }}" class="form-label small fw-bold">Operational Remarks & Notes</label>
+                        {{ form.remarks }}
+                        <div class="form-text small">{{ form.remarks.help_text }}</div>
+                        {% if form.remarks.errors %}<div class="text-danger small mt-1">{{ form.remarks.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'sample_detail' pk=sample.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-link-45deg me-1"></i> Commit Custody Entry
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

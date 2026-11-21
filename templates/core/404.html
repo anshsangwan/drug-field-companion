@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Record Not Found (404){% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 text-center">
+        <div class="card-forensic p-5">
+            <div class="text-warning mb-3">
+                <i class="bi bi-file-earmark-x fs-1"></i>
+            </div>
+            <h2 class="h4 fw-bold">404 - Record Not Found</h2>
+            <p class="text-muted mb-4">
+                The requested case reference, sample specimen, or evidentiary file could not be located in the forensic database.
+            </p>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

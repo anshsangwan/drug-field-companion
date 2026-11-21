@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'review_list' %}">Review Queue</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_detail' pk=case.pk %}">{{ case.case_reference }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">Supervisory Review</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <!-- Review Action Card -->
+        <div class="card-forensic mb-4">
+            <div class="card-header bg-warning bg-opacity-10 border-warning">
+                <span class="text-dark"><i class="bi bi-clipboard-check text-warning me-2"></i> {{ title }}</span>
+                <span class="badge bg-secondary font-monospace">{{ case.case_reference }}</span>
+            </div>
+            <div class="card-body">
+                <div class="p-3 bg-light rounded border mb-4">
+                    <div class="row g-2 small">
+                        <div class="col-md-8">
+                            <div class="text-muted">Case Title:</div>
+                            <div class="fw-bold">{{ case.title }}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Current Status:</div>
+                            <div class="fw-bold text-warning">{{ case.status }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted">Lead Field Officer:</div>
+                            <div>{{ case.created_by.get_full_name|default:case.created_by.username }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted">Registered Specimens:</div>
+                            <div>{{ samples|length }} sample(s) registered</div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Supervisory Determination <span class="text-danger">*</span></label>
+                        <div class="d-flex flex-column gap-2 mt-1">
+                            {% for choice in form.decision %}
+                            <div class="form-check p-3 border rounded bg-white">
+                                {{ choice.tag }}
+                                <label class="form-check-label fw-semibold ms-2" for="{{ choice.id_for_label }}">
+                                    {{ choice.choice_label }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.decision.errors %}<div class="text-danger small mt-1">{{ form.decision.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.comment.id_for_label }}" class="form-label small fw-bold">Mandatory Supervisory Comments & Actionable Feedback <span class="text-danger">*</span></label>
+                        {{ form.comment }}
+                        <div class="form-text small">{{ form.comment.help_text }}</div>
+                        {% if form.comment.errors %}<div class="text-danger small mt-1">{{ form.comment.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'case_detail' pk=case.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-warning text-dark px-4 fw-bold">
+                            <i class="bi bi-check-all me-1"></i> Submit Supervisory Determination
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Specimen & Test Summary Reference -->
+        <div class="card-forensic mb-4">
+            <div class="card-header">
+                <span><i class="bi bi-eye text-primary me-2"></i> Case Evidence & Documentation Summary</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-forensic mb-0">
+                    <thead>
+                        <tr>
+                            <th>Sample Code</th>
+                            <th>Description</th>
+                            <th>Packaging & Seal</th>
+                            <th>Presumptive Tests</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sample in samples %}
+                        <tr>
+                            <td class="font-monospace fw-bold">{{ sample.sample_code }}</td>
+                            <td class="small">{{ sample.description }}</td>
+                            <td class="small font-monospace">{{ sample.packaging_reference }} (Seal: {{ sample.seal_reference }})</td>
+                            <td>
+                                {% for test in sample.test_events.all %}
+                                <div class="small">
+                                    <strong>{{ test.kit.name }}</strong>: 
+                                    <span class="{% if test.result_category == 'Presumptive positive' %}text-danger fw-bold{% elif test.result_category == 'Presumptive negative' %}text-success fw-bold{% else %}text-warning{% endif %}">
+                                        {{ test.result_category }}
+                                    </span>
+                                </div>
+                                {% empty %}
+                                <span class="text-muted small">No tests recorded</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No samples registered.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Chain of Custody Timeline - {{ sample.sample_code }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+<li class="breadcrumb-item"><a href="{% url 'case_detail' pk=case.pk %}">{{ case.case_reference }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'sample_detail' pk=sample.pk %}">{{ sample.sample_code }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">Custody Timeline</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Chain of Custody Timeline</h1>
+        <p class="text-muted small mb-0">Specimen <span class="font-monospace fw-bold text-primary">{{ sample.sample_code }}</span> (Case {{ case.case_reference }})</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'sample_detail' pk=sample.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Specimen
+        </a>
+        {% if case.is_editable %}
+        <a href="{% url 'custody_event_create' sample_id=sample.pk %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Log Custody Event
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card-forensic">
+    <div class="card-body">
+        <div class="custody-timeline">
+            {% for event in events %}
+            <div class="timeline-entry">
+                <div class="timeline-dot {% if event.is_out_of_sequence %}out-of-sequence{% endif %}"></div>
+                <div class="timeline-card">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-dark text-white">{{ event.event_type }}</span>
+                            {% if event.is_out_of_sequence %}
+                            <span class="badge bg-danger text-white">
+                                <i class="bi bi-exclamation-triangle"></i> Out of Sequence
+                            </span>
+                            {% endif %}
+                            <span class="fw-bold">{{ event.from_person }} &rarr; {{ event.to_person }}</span>
+                        </div>
+                        <div class="text-muted small">
+                            <strong>{{ event.event_at|date:"Y-m-d H:i" }}</strong>
+                            <span class="text-secondary" style="font-size: 0.75rem;">(Logged {{ event.created_at|date:"Y-m-d H:i" }})</span>
+                        </div>
+                    </div>
+                    <div class="row g-2 small text-secondary">
+                        <div class="col-md-6">
+                            <i class="bi bi-geo-alt text-danger me-1"></i> Location: <strong>{{ event.location_reference }}</strong>
+                        </div>
+                        {% if event.seal_reference %}
+                        <div class="col-md-6">
+                            <i class="bi bi-shield-check text-success me-1"></i> Seal Verified: <span class="font-monospace fw-bold">{{ event.seal_reference }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if event.remarks %}
+                    <div class="mt-2 pt-2 border-top small text-muted">
+                        <em>Remarks:</em> {{ event.remarks }}
+                    </div>
+                    {% endif %}
+                    <div class="mt-1 text-end" style="font-size: 0.75rem; color: #94a3b8;">
+                        Logged by: {{ event.recorded_by.get_full_name|default:event.recorded_by.username }}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5 text-muted">
+                No chain-of-custody transactions recorded.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

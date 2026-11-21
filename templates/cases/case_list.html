@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Case Dossiers{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li class="breadcrumb-item active" aria-current="page">Case Dossiers</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Field Case Records</h1>
+        <p class="text-muted small mb-0">Authorized repository of drug field testing incident dossiers.</p>
+    </div>
+    {% if is_field_officer %}
+    <a href="{% url 'case_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-1">
+        <i class="bi bi-plus-circle"></i> Create New Case
+    </a>
+    {% endif %}
+</div>
+
+<!-- Search & Filtering Card -->
+<div class="card-forensic mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="q" class="form-label small fw-bold">Search Keywords</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" id="q" value="{{ q }}" class="form-control" placeholder="Reference, title, location...">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label for="status" class="form-label small fw-bold">Status Filter</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label for="date_from" class="form-label small fw-bold">Date From</label>
+                <input type="date" name="date_from" id="date_from" value="{{ date_from }}" class="form-control">
+            </div>
+
+            <div class="col-md-2">
+                <label for="date_to" class="form-label small fw-bold">Date To</label>
+                <input type="date" name="date_to" id="date_to" value="{{ date_to }}" class="form-control">
+            </div>
+
+            <div class="col-md-1 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100" title="Apply Filters">Filter</button>
+                <a href="{% url 'case_list' %}" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cases Table -->
+<div class="card-forensic">
+    <div class="table-responsive">
+        <table class="table table-forensic mb-0">
+            <thead>
+                <tr>
+                    <th>Case Reference</th>
+                    <th>Title & Operational Location</th>
+                    <th>Incident Date</th>
+                    <th>Samples</th>
+                    <th>Status</th>
+                    <th>Lead Officer</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'case_detail' pk=case.pk %}" class="font-monospace fw-bold text-decoration-none">
+                            {{ case.case_reference }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="fw-semibold">{{ case.title }}</div>
+                        <div class="text-muted small"><i class="bi bi-geo-alt"></i> {{ case.general_location }}</div>
+                    </td>
+                    <td class="text-muted small">
+                        {{ case.incident_datetime|date:"Y-m-d H:i" }}
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-box-seam me-1 text-primary"></i> {{ case.samples.count }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if case.status == 'Draft' %}
+                            <span class="badge-status badge-draft"><i class="bi bi-pencil"></i> Draft</span>
+                        {% elif case.status == 'Submitted' %}
+                            <span class="badge-status badge-submitted"><i class="bi bi-clock"></i> Submitted</span>
+                        {% elif case.status == 'Changes requested' %}
+                            <span class="badge-status badge-changes-requested"><i class="bi bi-arrow-repeat"></i> Changes Req.</span>
+                        {% elif case.status == 'Approved' %}
+                            <span class="badge-status badge-approved"><i class="bi bi-check2-circle"></i> Approved</span>
+                        {% else %}
+                            <span class="badge-status badge-archived">{{ case.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="small">
+                        {{ case.created_by.get_full_name|default:case.created_by.username }}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-inline-flex gap-1">
+                            <a href="{% url 'case_detail' pk=case.pk %}" class="btn btn-sm btn-outline-primary" title="View Full Dossier">
+                                View
+                            </a>
+                            <a href="{% url 'case_report' pk=case.pk %}" class="btn btn-sm btn-outline-secondary" title="View Print Report" target="_blank">
+                                <i class="bi bi-printer"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <div class="mb-2"><i class="bi bi-folder-x fs-2 text-secondary"></i></div>
+                        No case records found matching your filter parameters.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center py-3">
+        <span class="small text-muted">
+            Showing cases {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+        </span>
+        <nav aria-label="Cases pagination">
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ selected_status }}&date_from={{ date_from }}&date_to={{ date_to }}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}&q={{ q }}&status={{ selected_status }}&date_from={{ date_from }}&date_to={{ date_to }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ selected_status }}&date_from={{ date_from }}&date_to={{ date_to }}">Next</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

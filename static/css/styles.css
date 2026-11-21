@@ -1,0 +1,495 @@
+/* ==========================================================================
+   FieldTest Companion - Digital Companion for Drug Field Testing
+   Professional Forensic Documentation UI Design System
+   ========================================================================== */
+
+:root {
+    --ft-navy-950: #0a0f1d;
+    --ft-navy-900: #0f172a;
+    --ft-navy-800: #1e293b;
+    --ft-navy-700: #334155;
+    --ft-slate-600: #475569;
+    --ft-slate-500: #64748b;
+    --ft-slate-400: #94a3b8;
+    --ft-slate-200: #e2e8f0;
+    --ft-slate-100: #f1f5f9;
+    --ft-slate-50:  #f8fafc;
+    
+    --ft-blue-600:  #2563eb;
+    --ft-blue-700:  #1d4ed8;
+    --ft-blue-50:   #eff6ff;
+
+    --ft-success:   #059669;
+    --ft-success-bg:#ecfdf5;
+    --ft-warning:   #d97706;
+    --ft-warning-bg:#fffbeb;
+    --ft-danger:    #dc2626;
+    --ft-danger-bg: #fef2f2;
+    --ft-info:      #0284c7;
+    --ft-info-bg:   #f0f9ff;
+
+    --sidebar-width: 260px;
+    --topbar-height: 64px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--ft-slate-50);
+    color: var(--ft-navy-900);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* ---------------- Layout & Sidebar ---------------- */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--ft-navy-900);
+    color: #fff;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    overflow-y: auto;
+    transition: transform 0.25s ease-in-out;
+}
+
+.sidebar-brand {
+    padding: 1.25rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    border-bottom: 1px solid var(--ft-navy-800);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #fff;
+    text-decoration: none;
+}
+
+.sidebar-brand .badge-tag {
+    font-size: 0.7rem;
+    background-color: var(--ft-blue-600);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    list-style: none;
+    padding: 1rem 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.nav-section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--ft-slate-400);
+    padding: 0.75rem 1.5rem 0.25rem;
+    letter-spacing: 0.05em;
+}
+
+.nav-item {
+    margin: 0.15rem 0.75rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    color: var(--ft-slate-200);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.nav-link:hover {
+    background-color: var(--ft-navy-800);
+    color: #fff;
+}
+
+.nav-link.active {
+    background-color: var(--ft-blue-600);
+    color: #fff;
+    font-weight: 600;
+}
+
+.sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--ft-navy-800);
+    background-color: var(--ft-navy-950);
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.user-role-badge {
+    display: inline-block;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    background: var(--ft-navy-800);
+    color: var(--ft-slate-200);
+    border: 1px solid var(--ft-navy-700);
+}
+
+/* ---------------- Main Content ---------------- */
+.main-wrapper {
+    flex-grow: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.top-navbar {
+    height: var(--topbar-height);
+    background-color: #fff;
+    border-bottom: 1px solid var(--ft-slate-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 990;
+}
+
+.content-body {
+    padding: 1.75rem;
+    flex-grow: 1;
+}
+
+.system-disclaimer-banner {
+    background-color: var(--ft-warning-bg);
+    border: 1px solid #fde68a;
+    border-left: 4px solid var(--ft-warning);
+    color: #92400e;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.system-disclaimer-banner strong {
+    color: #78350f;
+}
+
+/* ---------------- Cards & Surfaces ---------------- */
+.card-forensic {
+    background: #fff;
+    border: 1px solid var(--ft-slate-200);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.card-forensic .card-header {
+    background: #fff;
+    border-bottom: 1px solid var(--ft-slate-200);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--ft-navy-900);
+}
+
+.card-forensic .card-body {
+    padding: 1.25rem;
+}
+
+/* ---------------- Forensic Metric Cards ---------------- */
+.metric-card {
+    background: #fff;
+    border: 1px solid var(--ft-slate-200);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.metric-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ft-slate-500);
+    margin-bottom: 0.4rem;
+}
+
+.metric-value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--ft-navy-900);
+    line-height: 1;
+}
+
+.metric-footer {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--ft-slate-500);
+}
+
+/* ---------------- Status Badges ---------------- */
+.badge-status {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.badge-draft {
+    background-color: var(--ft-slate-100);
+    color: var(--ft-slate-600);
+    border: 1px solid var(--ft-slate-200);
+}
+
+.badge-submitted {
+    background-color: var(--ft-warning-bg);
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.badge-changes-requested {
+    background-color: var(--ft-danger-bg);
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.badge-approved {
+    background-color: var(--ft-success-bg);
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-archived {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+/* Presumptive Result Badges */
+.badge-result {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.badge-result-positive {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #f87171;
+}
+
+.badge-result-negative {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #34d399;
+}
+
+.badge-result-inconclusive {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fbbf24;
+}
+
+.badge-result-invalid {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+/* ---------------- Forensic Timeline ---------------- */
+.custody-timeline {
+    position: relative;
+    padding-left: 2rem;
+    margin: 1rem 0;
+}
+
+.custody-timeline::before {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 0.75rem;
+    width: 2px;
+    background-color: var(--ft-slate-200);
+}
+
+.timeline-entry {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -2rem;
+    top: 0.2rem;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--ft-blue-600);
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 1px var(--ft-slate-200);
+}
+
+.timeline-dot.out-of-sequence {
+    background-color: var(--ft-danger);
+}
+
+.timeline-card {
+    background: #fff;
+    border: 1px solid var(--ft-slate-200);
+    border-radius: 6px;
+    padding: 0.9rem 1.1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+/* ---------------- Table Styles ---------------- */
+.table-forensic {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-forensic th {
+    background-color: var(--ft-slate-100);
+    color: var(--ft-slate-600);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--ft-slate-200);
+    text-align: left;
+}
+
+.table-forensic td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--ft-slate-200);
+    font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+.table-forensic tr:last-child td {
+    border-bottom: none;
+}
+
+.table-forensic tr:hover td {
+    background-color: var(--ft-slate-50);
+}
+
+/* ---------------- Printable Report Styles ---------------- */
+@media print {
+    .sidebar,
+    .top-navbar,
+    .no-print,
+    .btn,
+    .alert-banner-top {
+        display: none !important;
+    }
+
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
+        font-size: 11pt;
+    }
+
+    .main-wrapper {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    .content-body {
+        padding: 0 !important;
+    }
+
+    .report-sheet {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .report-disclaimer-box {
+        border: 2px solid #000 !important;
+        padding: 8pt !important;
+        font-weight: bold !important;
+        margin: 15pt 0 !important;
+    }
+
+    .table-forensic th {
+        background-color: #f0f0f0 !important;
+        color: #000 !important;
+        border: 1px solid #ccc !important;
+    }
+
+    .table-forensic td {
+        border: 1px solid #eee !important;
+    }
+}
+
+/* ---------------- Responsive Styles ---------------- */
+@media (max-width: 991px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-wrapper {
+        margin-left: 0;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 995;
+        display: none;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
